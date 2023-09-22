@@ -65,24 +65,24 @@ Usage
 -----
 
 ```shell
-USAGE: dotnet semver [--help] [init | inc <version> |  meta <value> | special <value> | tag | format <format>]
+USAGE: dotnet semver [--help] [init [--force] | inc <version> | pre <value> | meta <value> | tag | next <version> | format <format>]
 
 OPTIONS:
     --help - Display this list of options.
 
 SUBCOMMANDS:
-    init             - Initializes a new .semver file with an initial version v0.1.0.
-    inc <version>    - Increments the specified version number according to semver2 rules. <version> must be one of [major|minor|patch].
-    special <value>  - Sets the special value.
-    meta <value>     - Sets the metadata value.
-    next <version>   - Format incremented specific version without saving it. <version> must be one of [major|minor|patch].
-    tag              - Print the tag for the current .semver file.
-    format <format>  - Find the .semver file and print a formatted string from this.
+    init[ialize] [--force] - Initializes a new .semver file with an initial version v0.1.0.
+    inc[rement] <version>  - Increments the specified version number according to semver2 rules. <version> must be one of [major|minor|patch].
+    pre[release] <value>   - Sets the pre-release version suffix.
+    meta[data] <value>     - Sets the metadata value.
+    next <version>         - Format incremented specific version without saving it. <version> must be one of [major|minor|patch].
+    tag                    - Print the tag for the current .semver file.
+    format <format>        - Find the .semver file and print a formatted string from this.
     
 DOTNET CLI WRAPPERS:
-    build [args]     - Executes dotnet build, passing the current semver as a switch.
-    pack [args]      - Executes dotnet pack, passing the current semver as a switch.
-    publish [args]   - Executes dotnet publish, passing the current semver as a switch.
+    build [args]           - Executes dotnet build, passing the current semver as a switch.
+    pack [args]            - Executes dotnet pack, passing the current semver as a switch.
+    publish [args]         - Executes dotnet publish, passing the current semver as a switch.
 ```
 
 Credits
