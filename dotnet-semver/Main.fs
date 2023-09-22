@@ -1,4 +1,5 @@
 ﻿open System
+open System.Diagnostics
 open System.IO
 open FParsec
 
@@ -73,17 +74,17 @@ let save path semver =
 let modify transform =
     let filePath = locateSemver ()
     load filePath |> transform |> save filePath
-
-let printFormat (formatString: string) =
-    let semver = locateSemver () |> load
-
+    
+let format (formatString: string) semver =
     formatString
         .Replace("%M", $"%d{semver.Major}")
         .Replace("%m", $"%d{semver.Minor}")
         .Replace("%p", $"%d{semver.Patch}")
         .Replace("%s", semver.Special |> Option.map (sprintf "-%s") |> Option.defaultValue "")
         .Replace("%d", semver.Metadata |> Option.map (sprintf "+%s") |> Option.defaultValue "")
-    |> printfn "%s"
+
+let printFormat formatString =
+    locateSemver () |> load |> format formatString |> printfn "%s"
 
 let printTag () = printFormat "v%M.%m.%p%s%d"
 
@@ -107,6 +108,13 @@ let setMetadata value =
 
 let setSpecial value =
     modify (fun semver -> { semver with Special = value })
+    
+let spawn command (args: string list) =
+    let semver = locateSemver() |> load |> format "%M.%m.%p%s%d"
+    let start = ProcessStartInfo("dotnet", $"%s{command} /p:Version=%s{semver} %s{String.Join(' ', (List.toArray args))}")
+    let proc = Process.Start(start)
+    proc.WaitForExit()
+    exit proc.ExitCode
 
 let usage =
         """
@@ -121,23 +129,31 @@ SUBCOMMANDS:
     special <value>  - Sets the special value.
     meta <value>     - Sets the metadata value.
     tag              - Print the tag for the current .semver file.
-    format <format>  - Find the .semver file and print a formatted string from this."""
+    format <format>  - Find the .semver file and print a formatted string from this.
+    
+DOTNET CLI WRAPPERS:
+    build [args]     - Executes dotnet build, passing the current semver as a switch.
+    pack [args]      - Executes dotnet pack, passing the current semver as a switch.
+    publish [args]   - Executes dotnet publish, passing the current semver as a switch."""
 
 [<EntryPoint>]
 let main argv =
-    match argv with
-    | [| "--help" |]         -> exitWithMessage usage 0
-    | [| "format" |]         -> exitWithMessage "required: format string" -1
-    | [| "format"; format |] -> printFormat format
-    | [| "inc" |]            -> exitWithMessage "required: major | minor | patch" -1
-    | [| "inc"; element |]   -> increment element
-    | [| "init" |]           -> init ()
-    | [| "meta" |]           -> setMetadata None
-    | [| "meta"; value |]    -> setMetadata (Some value)
-    | [| "special" |]        -> setSpecial None
-    | [| "special"; value |] -> setSpecial (Some value)
-    | [| "tag" |]            -> printTag ()
-    | [||]                   -> printTag ()
-    | _                      -> exitWithMessage usage -1
+    match Array.toList argv with
+    | ["--help"]         -> exitWithMessage usage 0
+    | ["format"]         -> exitWithMessage "required: format string" -1
+    | ["format"; format] -> printFormat format
+    | ["inc"]            -> exitWithMessage "required: major | minor | patch" -1
+    | ["inc"; element]   -> increment element
+    | ["init"]           -> init ()
+    | ["meta"]           -> setMetadata None
+    | ["meta"; value]    -> setMetadata (Some value)
+    | ["special"]        -> setSpecial None
+    | ["special"; value] -> setSpecial (Some value)
+    | ["tag"]            -> printTag ()
+    | "build"::args      -> spawn "build" args
+    | "pack"::args       -> spawn "pack" args
+    | "publish"::args    -> spawn "publish" args
+    | []                 -> printTag ()
+    | _                  -> exitWithMessage usage -1
 
     exit 0

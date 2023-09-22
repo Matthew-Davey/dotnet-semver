@@ -1,17 +1,17 @@
 dotnet-semver
-======
+=============
 
 `dotnet-semver` is a dotnet re-implementation of the [ruby semver2 gem](https://github.com/haf/semver) cli.
 
 Quickstart
-------------------------------
-install it
+----------
+#### Install
 
 ```shell
 dotnet tool install -g dotnet-semver
 ```
 
-use it
+#### Use
 
 ```shell
 # Find the .semver file and print a formatted string from this.
@@ -42,6 +42,18 @@ cat .semver
 :metadata: ''
 ```
 
+Wrap dotnet CLI Commands
+--------------------
+`dotnet-semver` can wrap the dotnet cli commands `build`, `pack` and `publish`, automatically adding the necessary version switch to the command line.
+
+For example the command:
+
+`dotnet semver build --configuration Release`
+
+is executed as:
+
+`dotnet build /p:Version=0.2.0-alpha.45 --configuration Release`
+
 Git Integration
 ---------------
 
@@ -65,8 +77,13 @@ SUBCOMMANDS:
     meta <value>     - Sets the metadata value.
     tag              - Print the tag for the current .semver file.
     format <format>  - Find the .semver file and print a formatted string from this.
+    
+DOTNET CLI WRAPPERS:
+    build [args]     - Executes dotnet build, passing the current semver as a switch.
+    pack [args]      - Executes dotnet pack, passing the current semver as a switch.
+    publish [args]   - Executes dotnet publish, passing the current semver as a switch.
 ```
 
 Credits
------
+-------
 * [Matthew Davey](mailto:matt.davey@fsfe.org)
