@@ -35,7 +35,7 @@ let locateSemver () =
 
     search Environment.CurrentDirectory
 
-let load path =
+let load filePath =
     let quotedIdentifier =
         let quote = pchar ''' <|> pchar '"'
         let identifier = many1Chars (letter <|> digit <|> pchar '-' <|> pchar '.')
@@ -55,10 +55,12 @@ let load path =
 
             return { Major = major; Minor = minor; Patch = patch; Special = special; Metadata = meta }
         }
-
-    match run semVerParser (File.ReadAllText(path)) with
+        
+    match run semVerParser (File.ReadAllText(filePath)) with
     | Success(semver, _, _)  -> semver
     | Failure(message, _, _) -> raise (FormatException(message))
+    
+let read () = locateSemver () |> load
 
 let save path semver =
     let contents =
@@ -83,10 +85,7 @@ let format (formatString: string) semver =
         .Replace("%s", semver.Special |> Option.map (sprintf "-%s") |> Option.defaultValue "")
         .Replace("%d", semver.Metadata |> Option.map (sprintf "+%s") |> Option.defaultValue "")
 
-let printFormat formatString =
-    locateSemver () |> load |> format formatString |> printfn "%s"
-
-let printTag () = printFormat "v%M.%m.%p%s%d"
+let tagFormat = "v%M.%m.%p%s%d"
 
 let init () =
     let filepath = Path.Join(Environment.CurrentDirectory, ".semver")
@@ -96,28 +95,27 @@ let init () =
     else
         save filepath defaultVersion
 
-let increment =
-    function
-    | "major" -> modify (fun semver -> { semver with Major = semver.Major + 1us; Minor = 0us; Patch = 0us })
-    | "minor" -> modify (fun semver -> { semver with Minor = semver.Minor + 1us; Patch = 0us })
-    | "patch" -> modify (fun semver -> { semver with Patch = semver.Patch + 1us })
+let increment element semver =
+    match element with
+    | "major" -> { semver with Major = semver.Major + 1us; Minor = 0us; Patch = 0us }
+    | "minor" -> { semver with Minor = semver.Minor + 1us; Patch = 0us }
+    | "patch" -> { semver with Patch = semver.Patch + 1us }
     | other -> exitWithMessage $"%s{other} is invalid: major | minor | patch" -1
+    
+let setMetadata value semver =
+    { semver with Metadata = value }
 
-let setMetadata value =
-    modify (fun semver -> { semver with Metadata = value })
-
-let setSpecial value =
-    modify (fun semver -> { semver with Special = value })
+let setSpecial value semver =
+    { semver with Special = value }
     
 let spawn command (args: string list) =
-    let semver = locateSemver() |> load |> format "%M.%m.%p%s%d"
+    let semver = locateSemver () |> load |> format "%M.%m.%p%s%d"
     let start = ProcessStartInfo("dotnet", $"%s{command} /p:Version=%s{semver} %s{String.Join(' ', (List.toArray args))}")
     let proc = Process.Start(start)
     proc.WaitForExit()
     exit proc.ExitCode
 
-let usage =
-        """
+let usage = """
 USAGE: dotnet semver [--help] [init | inc <version> |  meta <value> | special <value> | tag | format <format>]
 
 OPTIONS:
@@ -128,6 +126,7 @@ SUBCOMMANDS:
     inc <version>    - Increments the specified version number according to semver2 rules. <version> must be one of [major|minor|patch].
     special <value>  - Sets the special value.
     meta <value>     - Sets the metadata value.
+    next <version>   - Format incremented specific version without saving it. <version> must be one of [major|minor|patch].
     tag              - Print the tag for the current .semver file.
     format <format>  - Find the .semver file and print a formatted string from this.
     
@@ -141,19 +140,21 @@ let main argv =
     match Array.toList argv with
     | ["--help"]         -> exitWithMessage usage 0
     | ["format"]         -> exitWithMessage "required: format string" -1
-    | ["format"; format] -> printFormat format
+    | ["format"; fmt]    -> read () |> format fmt |> printfn "%s"
     | ["inc"]            -> exitWithMessage "required: major | minor | patch" -1
-    | ["inc"; element]   -> increment element
+    | ["inc"; element]   -> modify (increment element)
     | ["init"]           -> init ()
-    | ["meta"]           -> setMetadata None
-    | ["meta"; value]    -> setMetadata (Some value)
-    | ["special"]        -> setSpecial None
-    | ["special"; value] -> setSpecial (Some value)
-    | ["tag"]            -> printTag ()
+    | ["meta"]           -> modify (setMetadata None)
+    | ["meta"; value]    -> modify (setMetadata (Some value))
+    | ["special"]        -> modify (setSpecial None)
+    | ["special"; value] -> modify (setSpecial (Some value))
+    | ["tag"]            -> read () |> format tagFormat |> printfn "%s"
+    | ["next"]           -> exitWithMessage "required: major | minor | patch" -1
+    | ["next"; element]  -> read () |> increment element |> format tagFormat |> printfn "%s"
     | "build"::args      -> spawn "build" args
     | "pack"::args       -> spawn "pack" args
     | "publish"::args    -> spawn "publish" args
-    | []                 -> printTag ()
+    | []                 -> read () |> format tagFormat |> printfn "%s"
     | _                  -> exitWithMessage usage -1
 
     exit 0
