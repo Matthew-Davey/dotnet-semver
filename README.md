@@ -75,6 +75,7 @@ SUBCOMMANDS:
     inc <version>    - Increments the specified version number according to semver2 rules. <version> must be one of [major|minor|patch].
     special <value>  - Sets the special value.
     meta <value>     - Sets the metadata value.
+    next <version>   - Format incremented specific version without saving it. <version> must be one of [major|minor|patch].
     tag              - Print the tag for the current .semver file.
     format <format>  - Find the .semver file and print a formatted string from this.
     
