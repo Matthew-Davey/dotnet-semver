@@ -14,11 +14,17 @@
     <Description>A simple dotnet tool aiming for compatibility with the ruby semver2 gem cli.</Description>
     <Copyright>Copyright © 2023-2023 Matthew Davey</Copyright>
     <PackageTags>semver semver2 cli tool</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/Matthew-Davey/dotnet-semver</PackageProjectUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/Matthew-Davey/dotnet-semver/master/LICENSE</PackageLicenseUrl>
+    <PackageLicensePath>LICENSE</PackageLicensePath>
     <RepositoryUrl>https://github.com/Matthew-Davey/dotnet-semver.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="\" />
+    <None Include="../LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
   
   <ItemGroup>
     <Compile Include="Main.fs" />
