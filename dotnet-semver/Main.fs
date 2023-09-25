@@ -1,6 +1,7 @@
 ﻿open System
 open System.Diagnostics
 open System.IO
+open FSharpPlus
 open FParsec
 
 type SemVer =
@@ -9,6 +10,13 @@ type SemVer =
       Patch: uint16
       Special: string option
       Metadata: string option }
+    
+type Element =
+    | Major
+    | Minor
+    | Patch
+    
+let (|??) a b = Option.defaultValue b a
     
 let defaultVersion = { Major = 0us; Minor = 1us; Patch = 0us; Special = None; Metadata = None }
 
@@ -42,19 +50,16 @@ let load filePath =
         between quote quote (opt identifier)
 
     let yamlProperty name valueParser =
-        pstring name .>> pchar ':' .>> spaces >>. valueParser .>> spaces
+        pstring name >>. pchar ':' >>. spaces >>. valueParser
 
     let semVerParser =
-        parse {
-            do! optional (skipString "---" .>> newline)
-            let! major   = yamlProperty ":major" puint16
-            let! minor   = yamlProperty ":minor" puint16
-            let! patch   = yamlProperty ":patch" puint16
-            let! special = yamlProperty ":special" quotedIdentifier
-            let! meta    = opt (yamlProperty ":metadata" quotedIdentifier) |>> Option.defaultValue None
-
-            return { Major = major; Minor = minor; Patch = patch; Special = special; Metadata = meta }
-        }
+        optional (skipString "---" >>. newline) >>.
+        yamlProperty ":major" puint16 .>> newline >>= fun major ->
+        yamlProperty ":minor" puint16 .>> newline >>= fun minor ->
+        yamlProperty ":patch" puint16 .>> newline >>= fun patch ->
+        yamlProperty ":special" quotedIdentifier .>> newline >>= fun special ->
+        yamlProperty ":metadata" quotedIdentifier .>> optional newline >>= fun meta ->
+            preturn { Major = major; Minor = minor; Patch = patch; Special = special; Metadata = meta }
         
     match run semVerParser (File.ReadAllText(filePath)) with
     | Success(semver, _, _)  -> semver
@@ -68,8 +73,8 @@ let save path semver =
 :major: %i{semver.Major}
 :minor: %i{semver.Minor}
 :patch: %i{semver.Patch}
-:special: '%s{semver.Special |> Option.defaultValue ""}'
-:metadata: '%s{semver.Metadata |> Option.defaultValue ""}'"""
+:special: '%s{semver.Special |?? ""}'
+:metadata: '%s{semver.Metadata |?? ""}'"""
 
     File.WriteAllText(path, contents)
 
@@ -77,13 +82,13 @@ let modify transform =
     let filePath = locateSemver ()
     load filePath |> transform |> save filePath
     
-let format (formatString: string) semver =
+let format formatString semver =
     formatString
-        .Replace("%M", $"%d{semver.Major}")
-        .Replace("%m", $"%d{semver.Minor}")
-        .Replace("%p", $"%d{semver.Patch}")
-        .Replace("%s", semver.Special |> Option.map (sprintf "-%s") |> Option.defaultValue "")
-        .Replace("%d", semver.Metadata |> Option.map (sprintf "+%s") |> Option.defaultValue "")
+    |> String.replace "%M" $"%d{semver.Major}"
+    |> String.replace "%m" $"%d{semver.Minor}"
+    |> String.replace "%p" $"%d{semver.Patch}"
+    |> String.replace "%s" (semver.Special |> Option.map (sprintf "-%s") |?? "")
+    |> String.replace "%d" (semver.Metadata |> Option.map (sprintf "+%s") |?? "")
 
 let tagFormat = "v%M.%m.%p%s%d"
 
@@ -97,10 +102,9 @@ let init force =
 
 let increment element semver =
     match element with
-    | "major" -> { semver with Major = semver.Major + 1us; Minor = 0us; Patch = 0us }
-    | "minor" -> { semver with Minor = semver.Minor + 1us; Patch = 0us }
-    | "patch" -> { semver with Patch = semver.Patch + 1us }
-    | other -> exitWithMessage $"%s{other} is invalid: major | minor | patch" -1
+    | Major -> { semver with Major = semver.Major + 1us; Minor = 0us; Patch = 0us }
+    | Minor -> { semver with Minor = semver.Minor + 1us; Patch = 0us }
+    | Patch -> { semver with Patch = semver.Patch + 1us }
     
 let setMetadata value semver =
     { semver with Metadata = value }
@@ -108,9 +112,9 @@ let setMetadata value semver =
 let setSpecial value semver =
     { semver with Special = value }
     
-let spawn command (args: string list) =
+let spawn command args =
     let semver = locateSemver () |> load |> format "%M.%m.%p%s%d"
-    let start = ProcessStartInfo("dotnet", $"%s{command} /p:Version=%s{semver} %s{String.Join(' ', (List.toArray args))}")
+    let start = ProcessStartInfo("dotnet", $"""%s{command} /p:Version=%s{semver} %s{args |?? ""}""")
     let proc = Process.Start(start)
     proc.WaitForExit()
     exit proc.ExitCode
@@ -135,29 +139,49 @@ DOTNET CLI WRAPPERS:
     pack [args]            - Executes dotnet pack, passing the current semver as a switch.
     publish [args]         - Executes dotnet publish, passing the current semver as a switch."""
 
+type Argument =
+    | Help
+    | Format of FormatString: string
+    | Increment of Element: Element
+    | Initialize of Force: bool
+    | Metadata of Value: string option
+    | Special of Value: string option
+    | Tag
+    | Next of Element: Element
+    | Dotnet of Command: string * Args: string option
+    
+let parseArguments =
+    let element = stringReturn "major" Major <|> stringReturn "minor" Minor <|> stringReturn "patch" Patch
+    let identifier = many1Chars (letter <|> digit <|> pchar '-' <|> pchar '.')
+    let dotnetCommand = pstring "build" <|> pstring "pack" <|> pstring "publish"
+    let abbr term abbreviated = pstring abbreviated >>. optional (pstring (String.drop abbreviated.Length term))
+    
+    (eof >>% Tag)
+    <|> (pstring "--help" <|> pstring "help" >>. eof >>% Help)
+    <|> (pstring "format" >>. spaces1 >>. many1Chars anyChar .>> eof |>> Format)
+    <|> (abbr "increment" "inc" >>. spaces1 >>. element .>> eof |>> Increment)
+    <|> (abbr "initialize" "init" >>. opt (spaces1 >>. pstring "--force") .>> eof |>> Option.isSome |>> Initialize)
+    <|> (abbr "metadata" "meta" >>. opt (spaces1 >>. identifier) .>> eof |>> Metadata)
+    <|> (abbr "prerelease" "pre" <|> abbr "special" "spe" >>. opt (spaces1 >>. identifier) .>> eof |>> Special)
+    <|> (pstring "tag" >>. eof >>% Tag)
+    <|> (pstring "next" >>. spaces1 >>. element .>> eof |>> Next)
+    <|> (dotnetCommand .>>. (opt (spaces1 >>. many1Chars anyChar)) .>> eof |>> Dotnet)
+
 [<EntryPoint>]
 let main argv =
-    match Array.toList argv with
-    | ["--help"]                         -> exitWithMessage usage 0
-    | ["format"]                         -> exitWithMessage "required: format string" -1
-    | ["format"; fmt]                    -> read () |> format fmt |> printfn "%s"
-    | ["inc" | "increment"]              -> exitWithMessage "required: major | minor | patch" -1
-    | ["inc" | "increment"; element]     -> modify (increment element)
-    | ["init" | "initialize"]            -> init false
-    | ["init" | "initialize"; "--force"] -> init true
-    | ["meta" | "metadata"]              -> modify (setMetadata None)
-    | ["meta" | "metadata"; value]       -> modify (setMetadata (Some value))
-    | ["pre" | "prerelease"]             -> modify (setSpecial None)
-    | ["pre" | "prerelease"; value]      -> modify (setSpecial (Some value))
-    | ["spe" | "special"]                -> modify (setSpecial None)
-    | ["spe" | "special"; value]         -> modify (setSpecial (Some value))
-    | ["tag"]                            -> read () |> format tagFormat |> printfn "%s"
-    | ["next"]                           -> exitWithMessage "required: major | minor | patch" -1
-    | ["next"; element]                  -> read () |> increment element |> format tagFormat |> printfn "%s"
-    | "build"::args                      -> spawn "build" args
-    | "pack"::args                       -> spawn "pack" args
-    | "publish"::args                    -> spawn "publish" args
-    | []                                 -> read () |> format tagFormat |> printfn "%s"
-    | _                                  -> exitWithMessage usage -1
-
-    exit 0
+    match run parseArguments (String.concat " " argv) with
+    | Success(result, _, _) ->
+        match result with
+        | Help                   -> exitWithMessage usage 0
+        | Format formatString    -> read () |> format formatString |> printfn "%s"
+        | Increment element      -> modify (increment element)
+        | Initialize force       -> init force
+        | Metadata value         -> modify (setMetadata value)
+        | Special value          -> modify (setSpecial value)
+        | Tag                    -> read () |> format tagFormat |> printfn "%s"
+        | Next element           -> read () |> increment element |> format tagFormat |> printfn "%s"
+        | Dotnet (command, args) -> spawn command args
+        exit 0
+    | Failure(error, _, _) ->
+        eprintfn $"%s{error}"
+        exit -1
