@@ -20,7 +20,7 @@ let (|??) a b = Option.defaultValue b a
     
 let defaultVersion = { Major = 0us; Minor = 1us; Patch = 0us; Special = None; Metadata = None }
 
-let exitWithMessage message exitCode =
+let exitWithMessage exitCode message =
     printfn $"%s{message}"
     exit exitCode
 
@@ -39,7 +39,7 @@ let locateSemver () =
             if Directory.Exists(parent) then
                 search parent
             else
-                exitWithMessage $"%s{Environment.CurrentDirectory} is not semantic versioned (SemVerMissingError)" -1
+                exitWithMessage -1 $"%s{Environment.CurrentDirectory} is not semantic versioned (SemVerMissingError)"
 
     search Environment.CurrentDirectory
 
@@ -65,8 +65,8 @@ let load filePath =
     | Success(semver, _, _)  -> semver
     | Failure(message, _, _) -> raise (FormatException(message))
     
-let read () = locateSemver () |> load
-
+let read = locateSemver >> load
+   
 let save path semver =
     let contents =
         $"""---
@@ -78,7 +78,7 @@ let save path semver =
 
     File.WriteAllText(path, contents)
 
-let modify transform =
+let update transform =
     let filePath = locateSemver ()
     load filePath |> transform |> save filePath
     
@@ -96,7 +96,7 @@ let init force =
     let filepath = Path.Join(Environment.CurrentDirectory, ".semver")
 
     if File.Exists(filepath) && not force then
-        exitWithMessage ".semver already exists" -1
+        exitWithMessage -1 ".semver already exists"
     else
         save filepath defaultVersion
 
@@ -138,7 +138,7 @@ DOTNET CLI WRAPPERS:
     build [args]           - Executes dotnet build, passing the current semver as a switch.
     pack [args]            - Executes dotnet pack, passing the current semver as a switch.
     publish [args]         - Executes dotnet publish, passing the current semver as a switch."""
-
+    
 type Argument =
     | Help
     | Format of FormatString: string
@@ -172,12 +172,12 @@ let main argv =
     match run parseArguments (String.concat " " argv) with
     | Success(result, _, _) ->
         match result with
-        | Help                   -> exitWithMessage usage 0
+        | Help                   -> exitWithMessage 0 usage
         | Format formatString    -> read () |> format formatString |> printfn "%s"
-        | Increment element      -> modify (increment element)
+        | Increment element      -> update (increment element)
         | Initialize force       -> init force
-        | Metadata value         -> modify (setMetadata value)
-        | Special value          -> modify (setSpecial value)
+        | Metadata value         -> update (setMetadata value)
+        | Special value          -> update (setSpecial value)
         | Tag                    -> read () |> format tagFormat |> printfn "%s"
         | Next element           -> read () |> increment element |> format tagFormat |> printfn "%s"
         | Dotnet (command, args) -> spawn command args

@@ -10,20 +10,20 @@
     <PackageId>dotnet-semver</PackageId>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>semver</ToolCommandName>
-    <Authors>Matt Davey</Authors>
+    <Authors>Matthew Davey</Authors>
     <Description>A simple dotnet tool aiming for compatibility with the ruby semver2 gem cli.</Description>
-    <Copyright>Copyright © 2023-2023 Matthew Davey</Copyright>
+    <Copyright>Copyright © 2023-2024 Matthew Davey</Copyright>
     <PackageTags>semver semver2 cli tool</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/Matthew-Davey/dotnet-semver</PackageProjectUrl>
-    <PackageLicensePath>LICENSE</PackageLicensePath>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/Matthew-Davey/dotnet-semver.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   
   <ItemGroup>
-    <None Include="../README.md" Pack="true" PackagePath="\" />
-    <None Include="../LICENSE" Pack="true" PackagePath="\" />
+    <None Include="../README.md" Pack="true" PackagePath="" />
+    <None Include="../LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
   
   <ItemGroup>
