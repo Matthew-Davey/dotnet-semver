@@ -7,6 +7,12 @@
       "commands": [
         "fantomas"
       ]
+    },
+    "dotnet-semver": {
+      "version": "1.0.0-beta.3",
+      "commands": [
+        "semver"
+      ]
     }
   }
 }
