@@ -14,21 +14,21 @@ dotnet tool install -g dotnet-semver
 #### Use
 
 ```shell
-# Find the .semver file and print a formatted string from this.
-semver                    # => v2.3.4
-
 # Initialize the .semver file.
-semver init
+dotnet semver init
+
+# Find the .semver file and print a formatted string from this.
+dotnet semver                    # => v0.1.0
 
 # Print the tag for the current .semver file.
-semver tag                # => v0.1.0
+dotnet semver tag                # => v0.1.0
 
-semver inc minor          # => v0.2.0
-semver pre "alpha.45"     # => v0.2.0-alpha.45
-semver meta "md5.abc123"  # => v0.2.0-alpha.45+md5.abc123
-semver format "%M.%m.x"   # => 0.2.x
-semver meta               # => v0.2.0-alpha.45
-git tag -a `semver tag`
+dotnet semver inc minor          # => v0.2.0
+dotnet semver pre "alpha.45"     # => v0.2.0-alpha.45
+dotnet semver meta "md5.abc123"  # => v0.2.0-alpha.45+md5.abc123
+dotnet semver format "%M.%m.x"   # => 0.2.x
+dotnet semver meta               # => v0.2.0-alpha.45
+git tag -a `dotneet semver tag`
 say 'that was easy'
 ```
 
@@ -58,7 +58,7 @@ Git Integration
 ---------------
 
 ```shell
-git config --global alias.semtag '!git tag -a $(semver tag) -m "tagging $(semver tag)"'
+git config --global alias.semtag '!git tag -a $(dotnet semver tag) -m "tagging $(dotnet semver tag)"'
 ```
 
 Usage
