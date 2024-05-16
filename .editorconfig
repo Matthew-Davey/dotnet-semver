@@ -1,0 +1,6 @@
+root=true
+
+[*.{fs,fsi,fsx}]
+max_line_length = 160
+fsharp_max_if_then_else_short_width = 100
+fsharp_max_infix_operator_expression = 160

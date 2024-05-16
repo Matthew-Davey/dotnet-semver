@@ -58,8 +58,7 @@ let load filePath =
         pstring name >>. pchar ':' >>. spaces >>. valueParser
 
     let semVerParser =
-        optional (skipString "---" >>. newline) >>. yamlProperty ":major" puint16
-        .>> newline
+        optional (skipString "---" >>. newline) >>. yamlProperty ":major" puint16 .>> newline
         >>= fun major ->
             yamlProperty ":minor" puint16 .>> newline
             >>= fun minor ->
@@ -193,14 +192,9 @@ let parseArguments =
     <|> (pstring "--help" <|> pstring "help" >>. eof >>% Help)
     <|> (pstring "format" >>. spaces1 >>. many1Chars anyChar .>> eof |>> Format)
     <|> (abbr "increment" "inc" >>. spaces1 >>. element .>> eof |>> Increment)
-    <|> (abbr "initialize" "init" >>. opt (spaces1 >>. pstring "--force") .>> eof
-         |>> Option.isSome
-         |>> Initialize)
+    <|> (abbr "initialize" "init" >>. opt (spaces1 >>. pstring "--force") .>> eof |>> Option.isSome |>> Initialize)
     <|> (abbr "metadata" "meta" >>. opt (spaces1 >>. identifier) .>> eof |>> Metadata)
-    <|> (abbr "prerelease" "pre" <|> abbr "special" "spe"
-         >>. opt (spaces1 >>. identifier)
-         .>> eof
-         |>> Special)
+    <|> (abbr "prerelease" "pre" <|> abbr "special" "spe" >>. opt (spaces1 >>. identifier) .>> eof |>> Special)
     <|> (pstring "tag" >>. eof >>% Tag)
     <|> (pstring "next" >>. spaces1 >>. element .>> eof |>> Next)
     <|> (dotnetCommand .>>. (opt (spaces1 >>. many1Chars anyChar)) .>> eof |>> Dotnet)
