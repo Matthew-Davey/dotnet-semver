@@ -1,6 +1,12 @@
 dotnet-semver
 =============
 
+![NuGet Version](https://img.shields.io/nuget/vpre/dotnet-semver?style=for-the-badge&logo=nuget&label=latest&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2Fdotnet-semver%2F)
+![NuGet Downloads](https://img.shields.io/nuget/dt/dotnet-semver?style=for-the-badge&logo=nuget&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2Fdotnet-semver%2F)
+![GitHub License](https://img.shields.io/github/license/Matthew-Davey/dotnet-semver?style=for-the-badge&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2Fdotnet-semver%2F1.0.0-beta.4%2FLicense)
+
+---
+
 `dotnet-semver` is a dotnet re-implementation of the [ruby semver2 gem](https://github.com/haf/semver) cli.
 
 Quickstart
