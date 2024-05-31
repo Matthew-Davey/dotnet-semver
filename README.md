@@ -1,9 +1,9 @@
 dotnet-semver
 =============
 
-![NuGet Version](https://img.shields.io/nuget/vpre/dotnet-semver?style=for-the-badge&logo=nuget&label=latest&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2Fdotnet-semver%2F)
-![NuGet Downloads](https://img.shields.io/nuget/dt/dotnet-semver?style=for-the-badge&logo=nuget&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2Fdotnet-semver%2F)
-![GitHub License](https://img.shields.io/github/license/Matthew-Davey/dotnet-semver?style=for-the-badge&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2Fdotnet-semver%2F1.0.0-beta.4%2FLicense)
+[![NuGet Version](https://img.shields.io/nuget/vpre/dotnet-semver?style=for-the-badge&logo=nuget&label=latest)](https://www.nuget.org/packages/dotnet-semver/latest)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/dotnet-semver?style=for-the-badge&logo=nuget)](https://www.nuget.org/stats/packages/dotnet-semver?groupby=Version)
+[![GitHub License](https://img.shields.io/github/license/Matthew-Davey/dotnet-semver?style=for-the-badge)](https://github.com/Matthew-Davey/dotnet-semver/blob/master/LICENSE)
 
 ---
 
@@ -34,7 +34,7 @@ dotnet semver pre "alpha.45"     # => v0.2.0-alpha.45
 dotnet semver meta "md5.abc123"  # => v0.2.0-alpha.45+md5.abc123
 dotnet semver format "%M.%m.x"   # => 0.2.x
 dotnet semver meta               # => v0.2.0-alpha.45
-git tag -a `dotneet semver tag`
+git tag -a `dotnet semver tag`
 say 'that was easy'
 ```
 
