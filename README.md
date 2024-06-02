@@ -26,16 +26,13 @@ dotnet semver init
 # Find the .semver file and print a formatted string from this.
 dotnet semver                    # => v0.1.0
 
-# Print the tag for the current .semver file.
-dotnet semver tag                # => v0.1.0
-
-dotnet semver inc minor          # => v0.2.0
-dotnet semver pre "alpha.45"     # => v0.2.0-alpha.45
-dotnet semver meta "md5.abc123"  # => v0.2.0-alpha.45+md5.abc123
-dotnet semver format "%M.%m.x"   # => 0.2.x
-dotnet semver meta               # => v0.2.0-alpha.45
-git tag -a `dotnet semver tag`
-say 'that was easy'
+dotnet semver inc major          # => v1.0.0
+dotnet semver inc minor          # => v1.1.0
+dotnet semver pre "alpha.45"     # => v1.1.0-alpha.45
+dotnet semver meta "md5.abc123"  # => v1.1.0-alpha.45+md5.abc123
+dotnet semver format "%M.%m.x"   # => 1.1.x
+dotnet semver meta               # => v1.1.0-alpha.45
+dotnet semver inc minor          # => v1.2.0-alpha.45+md5
 ```
 
 ```shell
@@ -58,13 +55,14 @@ For example the command:
 
 is executed as:
 
-`dotnet build /p:Version=0.2.0-alpha.45 --configuration Release`
+`dotnet build /p:Version=1.2.0-alpha.45 --configuration Release`
 
 Git Integration
 ---------------
 
 ```shell
-git config --global alias.semtag '!git tag -a $(dotnet semver tag) -m "tagging $(dotnet semver tag)"'
+git config alias.semtag '!git tag -a $(dotnet semver tag) -m "tagging $(dotnet semver tag)"'
+
 ```
 
 Usage
@@ -90,6 +88,15 @@ DOTNET CLI WRAPPERS:
     pack [args]            - Executes dotnet pack, passing the current semver as a switch.
     publish [args]         - Executes dotnet publish, passing the current semver as a switch.
 ```
+
+Format String Tokens
+--------------
+
+* Major: `%M`
+* Minor: `%m`
+* Patch: `%p`
+* Special: `%s`
+* Metadata: `%d`
 
 Credits
 -------
