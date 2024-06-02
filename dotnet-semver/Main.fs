@@ -29,7 +29,7 @@ let exitWithMessage exitCode message =
     printfn $"%s{message}"
     exit exitCode
 
-let locateSemver () =
+let locateSemVer () =
     let rec search directory =
         let filePath = Path.Join(directory, ".semver")
 
@@ -64,22 +64,22 @@ let load filePath =
             >>= fun minor ->
                 yamlProperty ":patch" puint16 .>> newline
                 >>= fun patch ->
-                    yamlProperty ":special" quotedIdentifier .>> newline
+                    yamlProperty ":special" quotedIdentifier .>> optional newline
                     >>= fun special ->
-                        yamlProperty ":metadata" quotedIdentifier .>> optional newline
+                        opt (yamlProperty ":metadata" quotedIdentifier) .>> optional newline
                         >>= fun meta ->
                             preturn
                                 { Major = major
                                   Minor = minor
                                   Patch = patch
                                   Special = special
-                                  Metadata = meta }
+                                  Metadata = Option.flatten meta }
 
     match run semVerParser (File.ReadAllText(filePath)) with
     | Success(semver, _, _) -> semver
     | Failure(message, _, _) -> raise (FormatException(message))
 
-let read = locateSemver >> load
+let read = locateSemVer >> load
 
 let save path semver =
     let contents =
@@ -93,7 +93,7 @@ let save path semver =
     File.WriteAllText(path, contents)
 
 let update transform =
-    let filePath = locateSemver ()
+    let filePath = locateSemVer ()
     load filePath |> transform |> save filePath
 
 let format formatString semver =
@@ -134,10 +134,10 @@ let setMetadata value semver = { semver with Metadata = value }
 let setSpecial value semver = { semver with Special = value }
 
 let spawn command args =
-    let semver = locateSemver () |> load |> format "%M.%m.%p%s%d"
+    let semVer = locateSemVer () |> load |> format "%M.%m.%p%s%d"
 
     let start =
-        ProcessStartInfo("dotnet", $"""%s{command} /p:Version=%s{semver} %s{args |?? ""}""")
+        ProcessStartInfo("dotnet", $"""%s{command} /p:Version=%s{semVer} %s{args |?? ""}""")
 
     let proc = Process.Start(start)
     proc.WaitForExit()
