@@ -32,7 +32,7 @@ dotnet semver pre "alpha.45"     # => v1.1.0-alpha.45
 dotnet semver meta "md5.abc123"  # => v1.1.0-alpha.45+md5.abc123
 dotnet semver format "%M.%m.x"   # => 1.1.x
 dotnet semver meta               # => v1.1.0-alpha.45
-dotnet semver inc minor          # => v1.2.0-alpha.45+md5
+dotnet semver inc minor          # => v1.2.0-alpha.45
 ```
 
 ```shell
