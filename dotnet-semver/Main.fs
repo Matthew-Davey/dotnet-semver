@@ -143,12 +143,17 @@ let spawn command args =
     proc.WaitForExit()
     exit proc.ExitCode
 
+let print newline format =
+    if newline then printfn format else printf format
+
 let usage =
     """
 USAGE: dotnet semver [--help] [init [--force] | inc <version> | pre <value> | meta <value> | tag | next <version> | format <format>]
 
 OPTIONS:
-    --help - Display this list of options.
+    --help  - Display this list of options.
+    --force - Force creation of a new .semver file, even if one already exists.
+    -n      - Do not output a trailing newline.
 
 SUBCOMMANDS:
     init[ialize] [--force] - Initializes a new .semver file with an initial version v0.1.0.
@@ -157,7 +162,7 @@ SUBCOMMANDS:
     meta[data] <value>     - Sets the metadata value.
     next <version>         - Format incremented specific version without saving it. <version> must be one of [major|minor|patch].
     tag                    - Print the tag for the current .semver file.
-    format <format>        - Find the .semver file and print a formatted string from this.
+    format [-n] <format>   - Find the .semver file and print a formatted string from this.
     
 DOTNET CLI WRAPPERS:
     build [args]           - Executes dotnet build, passing the current semver as a switch.
@@ -166,7 +171,7 @@ DOTNET CLI WRAPPERS:
 
 type Argument =
     | Help
-    | Format of FormatString: string
+    | Format of Newline: bool * FormatString: string
     | Increment of Element: Element
     | Initialize of Force: bool
     | Metadata of Value: string option
@@ -188,9 +193,12 @@ let parseArguments =
     let abbr term abbreviated =
         pstring abbreviated >>. optional (pstring (String.drop abbreviated.Length term))
 
+    let newlineSwitch =
+        opt ((stringReturn "-n" false) .>> spaces1) |>> Option.defaultValue true
+
     (eof >>% Tag)
     <|> (pstring "--help" <|> pstring "help" >>. eof >>% Help)
-    <|> (pstring "format" >>. spaces1 >>. many1Chars anyChar .>> eof |>> Format)
+    <|> (pstring "format" >>. spaces1 >>. newlineSwitch .>>. (many1Chars anyChar) .>> eof |>> Format)
     <|> (abbr "increment" "inc" >>. spaces1 >>. element .>> eof |>> Increment)
     <|> (abbr "initialize" "init" >>. opt (spaces1 >>. pstring "--force") .>> eof |>> Option.isSome |>> Initialize)
     <|> (abbr "metadata" "meta" >>. opt (spaces1 >>. identifier) .>> eof |>> Metadata)
@@ -205,7 +213,7 @@ let main argv =
     | Success(command, _, _) ->
         match command with
         | Help -> exitWithMessage 0 usage
-        | Format formatString -> read () |> format formatString |> printfn "%s"
+        | Format(newline, formatString) -> read () |> format formatString |> print newline "%s"
         | Increment element -> update (increment element)
         | Initialize force -> init force
         | Metadata value -> update (setMetadata value)

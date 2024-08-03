@@ -73,6 +73,7 @@ USAGE: dotnet semver [--help] [init [--force] | inc <version> | pre <value> | me
 
 OPTIONS:
     --help - Display this list of options.
+    -n     - Do not output the trailing newline.
 
 SUBCOMMANDS:
     init[ialize] [--force] - Initializes a new .semver file with an initial version v0.1.0.
@@ -81,7 +82,7 @@ SUBCOMMANDS:
     meta[data] <value>     - Sets the metadata value.
     next <version>         - Format incremented specific version without saving it. <version> must be one of [major|minor|patch].
     tag                    - Print the tag for the current .semver file.
-    format <format>        - Find the .semver file and print a formatted string from this.
+    format [-n] <format>   - Find the .semver file and print a formatted string from this..
     
 DOTNET CLI WRAPPERS:
     build [args]           - Executes dotnet build, passing the current semver as a switch.
