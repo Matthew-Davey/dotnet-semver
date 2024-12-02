@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,12 +20,12 @@
     <RepositoryUrl>https://github.com/Matthew-Davey/dotnet-semver.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <None Include="../README.md" Pack="true" PackagePath="" />
     <None Include="../LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Compile Include="Main.fs" />
   </ItemGroup>
