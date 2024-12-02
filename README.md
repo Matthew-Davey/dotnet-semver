@@ -69,11 +69,12 @@ Usage
 -----
 
 ```shell
-USAGE: dotnet semver [--help] [init [--force] | inc <version> | pre <value> | meta <value> | tag | next <version> | format <format>]
+USAGE: dotnet semver [--help] [init [--force] | inc <version> | pre <value> | meta <value> | tag | next <version> | format [-n] <format>]
 
 OPTIONS:
-    --help - Display this list of options.
-    -n     - Do not output the trailing newline.
+    --help  - Display this list of options.
+    --force - Force creation of a new .semver file, even if one already exists.
+    -n      - Do not output a trailing newline.
 
 SUBCOMMANDS:
     init[ialize] [--force] - Initializes a new .semver file with an initial version v0.1.0.
