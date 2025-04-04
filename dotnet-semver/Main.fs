@@ -164,6 +164,9 @@ SUBCOMMANDS:
     tag                    - Print the tag for the current .semver file.
     format [-n] <format>   - Find the .semver file and print a formatted string from this.
 
+ALIASES:
+    bump <version>         - Alias for increment.
+
 DOTNET CLI WRAPPERS:
     build [args]           - Executes dotnet build, passing the current semver as a switch.
     pack [args]            - Executes dotnet pack, passing the current semver as a switch.
@@ -200,7 +203,7 @@ let parseArguments =
     (eof >>% Tag)
     <|> (pstring "--help" <|> pstring "help" >>. eof >>% Help)
     <|> (pstring "format" >>. spaces1 >>. newlineSwitch .>>. (many1Chars anyChar) .>> eof |>> Format)
-    <|> (stringChoice ["increment"; "inc"] >>. spaces1 >>. element .>> eof |>> Increment)
+    <|> (stringChoice ["increment"; "inc"; "bump"] >>. spaces1 >>. element .>> eof |>> Increment)
     <|> (stringChoice ["initialize"; "init"] >>. opt (spaces1 >>. pstring "--force") .>> eof |>> Option.isSome |>> Initialize)
     <|> (stringChoice ["metadata"; "meta"] >>. opt (spaces1 >>. identifier) .>> eof |>> Metadata)
     <|> (stringChoice ["prerelease"; "pre"; "special"; "spe"] >>. opt (spaces1 >>. identifier) .>> eof |>> Special)

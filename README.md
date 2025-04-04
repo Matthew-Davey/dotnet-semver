@@ -84,7 +84,10 @@ SUBCOMMANDS:
     next <version>         - Format incremented specific version without saving it. <version> must be one of [major|minor|patch].
     tag                    - Print the tag for the current .semver file.
     format [-n] <format>   - Find the .semver file and print a formatted string from this..
-    
+
+ALIASES:
+    bump <version>         - Alias for increment.
+
 DOTNET CLI WRAPPERS:
     build [args]           - Executes dotnet build, passing the current semver as a switch.
     pack [args]            - Executes dotnet pack, passing the current semver as a switch.
