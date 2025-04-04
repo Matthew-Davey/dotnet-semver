@@ -163,11 +163,12 @@ SUBCOMMANDS:
     next <version>         - Format incremented specific version without saving it. <version> must be one of [major|minor|patch].
     tag                    - Print the tag for the current .semver file.
     format [-n] <format>   - Find the .semver file and print a formatted string from this.
-    
+
 DOTNET CLI WRAPPERS:
     build [args]           - Executes dotnet build, passing the current semver as a switch.
     pack [args]            - Executes dotnet pack, passing the current semver as a switch.
-    publish [args]         - Executes dotnet publish, passing the current semver as a switch."""
+    publish [args]         - Executes dotnet publish, passing the current semver as a switch.
+    run [args]             - Executes dotnet run, passing the current semver as a switch."""
 
 type Argument =
     | Help
@@ -188,10 +189,10 @@ let parseArguments =
               stringReturn "patch" Patch ]
 
     let identifier = many1Chars (choice [ letter; digit; pchar '-'; pchar '.' ])
-    let dotnetCommand = choice [ pstring "build"; pstring "pack"; pstring "publish" ]
+    let stringChoice = List.map pstring >> choice
 
-    let abbr term abbreviated =
-        pstring abbreviated >>. optional (pstring (String.drop abbreviated.Length term))
+    let dotnetCommand =
+        stringChoice ["build"; "pack"; "publish"; "run"]
 
     let newlineSwitch =
         opt ((stringReturn "-n" false) .>> spaces1) |>> Option.defaultValue true
@@ -199,10 +200,10 @@ let parseArguments =
     (eof >>% Tag)
     <|> (pstring "--help" <|> pstring "help" >>. eof >>% Help)
     <|> (pstring "format" >>. spaces1 >>. newlineSwitch .>>. (many1Chars anyChar) .>> eof |>> Format)
-    <|> (abbr "increment" "inc" >>. spaces1 >>. element .>> eof |>> Increment)
-    <|> (abbr "initialize" "init" >>. opt (spaces1 >>. pstring "--force") .>> eof |>> Option.isSome |>> Initialize)
-    <|> (abbr "metadata" "meta" >>. opt (spaces1 >>. identifier) .>> eof |>> Metadata)
-    <|> (abbr "prerelease" "pre" <|> abbr "special" "spe" >>. opt (spaces1 >>. identifier) .>> eof |>> Special)
+    <|> (stringChoice ["increment"; "inc"] >>. spaces1 >>. element .>> eof |>> Increment)
+    <|> (stringChoice ["initialize"; "init"] >>. opt (spaces1 >>. pstring "--force") .>> eof |>> Option.isSome |>> Initialize)
+    <|> (stringChoice ["metadata"; "meta"] >>. opt (spaces1 >>. identifier) .>> eof |>> Metadata)
+    <|> (stringChoice ["prerelease"; "pre"; "special"; "spe"] >>. opt (spaces1 >>. identifier) .>> eof |>> Special)
     <|> (pstring "tag" >>. eof >>% Tag)
     <|> (pstring "next" >>. spaces1 >>. element .>> eof |>> Next)
     <|> (dotnetCommand .>>. (opt (spaces1 >>. many1Chars anyChar)) .>> eof |>> Dotnet)

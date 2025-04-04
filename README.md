@@ -47,7 +47,7 @@ cat .semver
 
 Wrap dotnet CLI Commands
 --------------------
-`dotnet-semver` can wrap the dotnet cli commands `build`, `pack` and `publish`, automatically adding the necessary version switch to the command line.
+`dotnet-semver` can wrap the dotnet cli commands `build`, `pack`, `publish` and `run`, automatically adding the necessary version switch to the command line.
 
 For example the command:
 
@@ -89,6 +89,7 @@ DOTNET CLI WRAPPERS:
     build [args]           - Executes dotnet build, passing the current semver as a switch.
     pack [args]            - Executes dotnet pack, passing the current semver as a switch.
     publish [args]         - Executes dotnet publish, passing the current semver as a switch.
+    run [args]             - Executes dotnet run, passing the current semver as a switch.
 ```
 
 Format String Tokens
