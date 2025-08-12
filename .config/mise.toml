@@ -1,0 +1,27 @@
+[tools]
+dotnet-core = "9.0.304"
+
+[tasks.restore]
+description = 'Restore nuget packages'
+run = 'dotnet tool restore'
+
+[tasks.format]
+description = 'Format source files using fantomas'
+run = 'dotnet fantomas ./dotnet-semver/Main.fs'
+
+[tasks.build]
+depends = ['restore', 'format']
+description = 'Build project binaries'
+run = 'dotnet semver build --nologo --artifacts-path ./artifacts --configuration Release'
+
+[tasks.pack]
+depends = ['build']
+description = 'Build nuget package'
+run = 'dotnet semver pack --nologo --no-build --artifacts-path ./artifacts --configuration Release'
+
+[tasks.push]
+description = 'Push nuget package to remote repository'
+run = [
+  'dotnet nuget push ./artifacts/package/release/{{arg(name="package")}} --source github --api-key $(pass GITHUB_ACCESS_TOKEN) --skip-duplicate',
+  'dotnet nuget push ./artifacts/package/release/{{arg(name="package")}} --source nuget.org --api-key $(pass NUGET_API_KEY) --skip-duplicate',
+]
