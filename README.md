@@ -38,7 +38,7 @@ dotnet semver inc minor          # => v1.2.0-alpha.45
 ```shell
 cat .semver
 ---
-:major: 0
+:major: 1
 :minor: 2
 :patch: 0
 :special: 'alpha.45'
