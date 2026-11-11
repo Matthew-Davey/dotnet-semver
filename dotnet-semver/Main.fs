@@ -16,7 +16,7 @@ type Element =
     | Minor
     | Patch
 
-let (|??) a b = Option.defaultValue b a
+let (|??) = defaultArg
 
 let defaultVersion =
     { Major = 0us
