@@ -1,5 +1,8 @@
+[env]
+DOTNET_CLI_TELEMETRY_OPTOUT = "true"
+
 [tools]
-dotnet-core = "10.0.100"
+dotnet = "11.0.100"
 
 [tasks.restore]
 description = 'Restore nuget packages'
