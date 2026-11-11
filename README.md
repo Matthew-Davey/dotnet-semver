@@ -104,6 +104,13 @@ Format String Tokens
 * Special: `%s`
 * Metadata: `%d`
 
+## Related Projects
+* [Bump](https://github.com/ljonesfl/bump)
+* [node-semver](https://github.com/npm/node-semver)
+* [SemVer2](https://github.com/nuskey8/SemVer2)
+* [semver-tool](https://github.com/fsaintjacques/semver-tool)
+* [sver](https://github.com/robzr/sver)
+
 Credits
 -------
 * [Matthew Davey](mailto:matt.davey@fsfe.org)
